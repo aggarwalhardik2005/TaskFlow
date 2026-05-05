@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiGrid, FiFolder, FiCheckSquare, FiUsers, FiUser, FiLogOut, FiMenu, FiX } from 'react-icons/fi';
+import { FiGrid, FiFolder, FiCheckSquare, FiUsers, FiUser, FiLogOut, FiMenu, FiX, FiShield } from 'react-icons/fi';
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -10,13 +10,14 @@ export default function Layout() {
 
   const handleLogout = () => { logout(); navigate('/login'); };
   const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || '?';
+  const isAdmin = user?.role === 'admin';
 
   const navItems = [
-    { to: '/dashboard', icon: <FiGrid />, label: 'Dashboard' },
-    { to: '/projects', icon: <FiFolder />, label: 'Projects' },
-    { to: '/tasks', icon: <FiCheckSquare />, label: 'Tasks' },
-    { to: '/team', icon: <FiUsers />, label: 'Team' },
-    { to: '/profile', icon: <FiUser />, label: 'Profile' },
+    { to: '/dashboard', icon: <FiGrid />, label: 'Dashboard', show: true },
+    { to: '/projects', icon: <FiFolder />, label: 'Projects', show: true },
+    { to: '/tasks', icon: <FiCheckSquare />, label: 'My Tasks', show: true },
+    { to: '/team', icon: <FiUsers />, label: 'Team Management', show: isAdmin },
+    { to: '/profile', icon: <FiUser />, label: 'Profile', show: true },
   ];
 
   return (
@@ -31,7 +32,7 @@ export default function Layout() {
         </div>
         <nav className="sidebar-nav">
           <span className="nav-section-title">Menu</span>
-          {navItems.map(item => (
+          {navItems.filter(item => item.show).map(item => (
             <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
               onClick={() => setSidebarOpen(false)}>
               <span className="icon">{item.icon}</span>{item.label}
@@ -47,7 +48,10 @@ export default function Layout() {
             <div className="user-avatar">{initials}</div>
             <div className="user-details">
               <div className="user-name">{user?.name}</div>
-              <div className="user-role">{user?.role}</div>
+              <div className="user-role" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {isAdmin && <FiShield size={10} />}
+                {user?.role}
+              </div>
             </div>
           </div>
         </div>

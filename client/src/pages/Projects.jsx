@@ -13,6 +13,7 @@ export default function Projects() {
   const [submitting, setSubmitting] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = user?.role === 'admin';
 
   const colors = ['#6366f1','#8b5cf6','#ec4899','#ef4444','#f59e0b','#10b981','#3b82f6','#06b6d4'];
 
@@ -47,7 +48,7 @@ export default function Projects() {
       await api.delete(`/projects/${id}`);
       toast.success('Deleted');
       fetchProjects();
-    } catch (err) { toast.error('Failed to delete'); }
+    } catch (err) { toast.error(err.response?.data?.message || 'Failed to delete'); }
   };
 
   if (loading) return <div className="loading-spinner"><div className="spinner" /></div>;
@@ -60,9 +61,12 @@ export default function Projects() {
             <h1 className="page-title">Projects</h1>
             <p className="page-subtitle">{projects.length} project{projects.length !== 1 ? 's' : ''}</p>
           </div>
-          <button id="create-project-btn" className="btn btn-primary" onClick={() => setShowModal(true)}>
-            <FiPlus /> New Project
-          </button>
+          {/* Only Admins can create new projects */}
+          {isAdmin && (
+            <button id="create-project-btn" className="btn btn-primary" onClick={() => setShowModal(true)}>
+              <FiPlus /> New Project
+            </button>
+          )}
         </div>
       </div>
       <div className="page-content">
@@ -70,8 +74,12 @@ export default function Projects() {
           <div className="empty-state">
             <div className="empty-state-icon">📁</div>
             <div className="empty-state-title">No projects yet</div>
-            <div className="empty-state-desc">Create your first project to get started</div>
-            <button className="btn btn-primary" onClick={() => setShowModal(true)}>Create Project</button>
+            <div className="empty-state-desc">
+              {isAdmin ? 'Create your first project to get started' : 'No projects have been assigned to you yet'}
+            </div>
+            {isAdmin && (
+              <button className="btn btn-primary" onClick={() => setShowModal(true)}>Create Project</button>
+            )}
           </div>
         ) : (
           <div className="projects-grid">
@@ -108,7 +116,8 @@ export default function Projects() {
                       ))}
                       {p.members?.length > 4 && <div className="user-avatar">+{p.members.length - 4}</div>}
                     </div>
-                    {(user?.role === 'admin' || p.owner?._id === user?._id) && (
+                    {/* Only Admins can delete projects */}
+                    {isAdmin && (
                       <button className="btn btn-ghost btn-sm" onClick={(e) => handleDelete(p._id, e)}
                         style={{ color: 'var(--danger)' }}>Delete</button>
                     )}
@@ -120,7 +129,7 @@ export default function Projects() {
         )}
       </div>
 
-      {showModal && (
+      {showModal && isAdmin && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">

@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 import { FiSearch, FiClock } from 'react-icons/fi';
 
 export default function Tasks() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ status: '', priority: '', search: '' });
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
 
   const fetchTasks = async () => {
     try {
@@ -40,8 +43,8 @@ export default function Tasks() {
   return (
     <div className="fade-in">
       <div className="page-header">
-        <h1 className="page-title">All Tasks</h1>
-        <p className="page-subtitle">{tasks.length} task{tasks.length !== 1 ? 's' : ''} across all projects</p>
+        <h1 className="page-title">{isAdmin ? 'All Tasks' : 'My Tasks'}</h1>
+        <p className="page-subtitle">{tasks.length} task{tasks.length !== 1 ? 's' : ''}{isAdmin ? ' across all projects' : ' assigned to you'}</p>
       </div>
       <div className="page-content">
         <div className="filters-bar">
@@ -126,13 +129,18 @@ export default function Tasks() {
                       ) : <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>—</span>}
                     </td>
                     <td>
-                      <select value={task.status} onChange={e => handleStatusChange(task._id, e.target.value)}
-                        className="form-select" style={{ fontSize: '12px', padding: '4px 8px', minWidth: '120px' }}>
-                        <option value="todo">To Do</option>
-                        <option value="in-progress">In Progress</option>
-                        <option value="review">Review</option>
-                        <option value="done">Done</option>
-                      </select>
+                      {/* Members can only change status of tasks assigned to them */}
+                      {(isAdmin || task.assignedTo?._id === user?._id) ? (
+                        <select value={task.status} onChange={e => handleStatusChange(task._id, e.target.value)}
+                          className="form-select" style={{ fontSize: '12px', padding: '4px 8px', minWidth: '120px' }}>
+                          <option value="todo">To Do</option>
+                          <option value="in-progress">In Progress</option>
+                          <option value="review">Review</option>
+                          <option value="done">Done</option>
+                        </select>
+                      ) : (
+                        <span className={`badge badge-${task.status}`}>{task.status}</span>
+                      )}
                     </td>
                   </tr>
                 ))}

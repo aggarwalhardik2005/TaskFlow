@@ -59,6 +59,11 @@ const getProject = async (req, res) => {
 
 const createProject = async (req, res) => {
   try {
+    // Only admins can create projects
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Only admins can create projects.' });
+    }
+
     const { name, description, deadline, color, members } = req.body;
     if (!name || !description) return res.status(400).json({ message: 'Please provide name and description' });
 
@@ -108,8 +113,8 @@ const deleteProject = async (req, res) => {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
-    const isOwner = project.owner.toString() === req.user._id.toString();
-    if (!isOwner && req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+    // Only admins can delete projects
+    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied. Only admins can delete projects.' });
 
     await Task.deleteMany({ project: project._id });
     await Project.findByIdAndDelete(req.params.id);
@@ -124,8 +129,8 @@ const addMember = async (req, res) => {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
-    const isOwner = project.owner.toString() === req.user._id.toString();
-    if (!isOwner && req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+    // Only admins can add members
+    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied. Only admins can manage members.' });
 
     const { email, role } = req.body;
     if (!email) return res.status(400).json({ message: 'Please provide user email' });
@@ -153,8 +158,8 @@ const removeMember = async (req, res) => {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
-    const isOwner = project.owner.toString() === req.user._id.toString();
-    if (!isOwner && req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+    // Only admins can remove members
+    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied. Only admins can manage members.' });
     if (req.params.userId === project.owner.toString()) return res.status(400).json({ message: 'Cannot remove owner' });
 
     project.members = project.members.filter((m) => m.user.toString() !== req.params.userId);

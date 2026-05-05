@@ -88,7 +88,9 @@ export default function ProjectDetail() {
   if (loading) return <div className="loading-spinner"><div className="spinner" /></div>;
   if (!project) return null;
 
-  const isOwnerOrAdmin = user?.role === 'admin' || project.owner?._id === user?._id;
+  const isAdmin = user?.role === 'admin';
+  const isOwner = project.owner?._id === user?._id;
+  const isOwnerOrAdmin = isAdmin || isOwner;
   const tasks = project.tasks || [];
 
   return (
@@ -107,7 +109,8 @@ export default function ProjectDetail() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            {isOwnerOrAdmin && (
+            {/* Only Admins can manage members */}
+            {isAdmin && (
               <button className="btn btn-secondary" onClick={() => setShowMemberModal(true)}>
                 <FiUserPlus /> Add Member
               </button>
@@ -129,7 +132,8 @@ export default function ProjectDetail() {
               <div className="user-avatar" style={{ width: 22, height: 22, fontSize: 10 }}>{m.user?.name?.[0]}</div>
               <span>{m.user?.name}</span>
               <span className={`badge badge-${m.role}`} style={{ fontSize: 9, padding: '1px 6px' }}>{m.role}</span>
-              {isOwnerOrAdmin && m.user?._id !== project.owner?._id && (
+              {/* Only Admins can remove members */}
+              {isAdmin && m.user?._id !== project.owner?._id && (
                 <button onClick={() => handleRemoveMember(m.user?._id)}
                   style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: 0 }}>
                   <FiX size={12} />
@@ -157,10 +161,13 @@ export default function ProjectDetail() {
                     <div key={task._id} className="task-card">
                       <div className="task-card-header">
                         <span className="task-card-title">{task.title}</span>
+                        {/* Only Admin or task creator can delete */}
+                        {(isAdmin || task.createdBy?._id === user?._id) && (
                         <button onClick={() => handleDeleteTask(task._id)}
                           style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px' }}>
                           <FiTrash2 size={12} />
                         </button>
+                        )}
                       </div>
                       {task.description && (
                         <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>
@@ -182,11 +189,16 @@ export default function ProjectDetail() {
                             {task.assignedTo.name}
                           </span>
                         ) : <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Unassigned</span>}
-                        <select value={task.status} onChange={e => handleStatusChange(task._id, e.target.value)}
-                          style={{ fontSize: '11px', padding: '2px 6px', background: 'var(--bg-input)', border: '1px solid var(--border)',
-                            borderRadius: '4px', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                          {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
-                        </select>
+                        {/* Members can only change status if assigned to them, Admins can change any */}
+                        {(isAdmin || task.assignedTo?._id === user?._id) ? (
+                          <select value={task.status} onChange={e => handleStatusChange(task._id, e.target.value)}
+                            style={{ fontSize: '11px', padding: '2px 6px', background: 'var(--bg-input)', border: '1px solid var(--border)',
+                              borderRadius: '4px', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                            {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+                          </select>
+                        ) : (
+                          <span className={`badge badge-${task.status}`}>{task.status}</span>
+                        )}
                       </div>
                     </div>
                   ))}

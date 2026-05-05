@@ -1,14 +1,25 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
-import { FiSearch } from 'react-icons/fi';
+import { FiSearch, FiShield, FiAlertTriangle } from 'react-icons/fi';
 
 export default function Team() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
+  const isAdmin = currentUser?.role === 'admin';
+
+  // Redirect members away from team management
+  useEffect(() => {
+    if (!isAdmin) {
+      toast.error('Access denied. Admin only.');
+      navigate('/dashboard');
+    }
+  }, [isAdmin, navigate]);
 
   const fetchUsers = async () => {
     try {
@@ -18,7 +29,7 @@ export default function Team() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => { if (isAdmin) fetchUsers(); }, []);
 
   const handleRoleChange = async (userId, newRole) => {
     try {
@@ -37,6 +48,8 @@ export default function Team() {
     } catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
   };
 
+  if (!isAdmin) return null;
+
   const filtered = users.filter(u =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
     u.email.toLowerCase().includes(search.toLowerCase())
@@ -47,8 +60,14 @@ export default function Team() {
   return (
     <div className="fade-in">
       <div className="page-header">
-        <h1 className="page-title">Team</h1>
-        <p className="page-subtitle">{users.length} team member{users.length !== 1 ? 's' : ''}</p>
+        <div className="page-header-row">
+          <div>
+            <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <FiShield /> Team Management
+            </h1>
+            <p className="page-subtitle">{users.length} team member{users.length !== 1 ? 's' : ''} — Admin access only</p>
+          </div>
+        </div>
       </div>
       <div className="page-content">
         <div className="filters-bar">
@@ -78,7 +97,7 @@ export default function Team() {
               </div>
               <div className="member-actions" style={{ alignItems: 'center' }}>
                 <span className={`badge badge-${u.role}`}>{u.role}</span>
-                {currentUser?.role === 'admin' && u._id !== currentUser._id && (
+                {u._id !== currentUser._id && (
                   <>
                     <select value={u.role} onChange={e => handleRoleChange(u._id, e.target.value)}
                       className="form-select" style={{ fontSize: '12px', padding: '4px 8px', width: 'auto', minWidth: '100px' }}>
