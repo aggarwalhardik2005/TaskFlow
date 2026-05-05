@@ -4,7 +4,7 @@
 ===============================================================================
 
 LIVE URL: https://team-task-manager-uaso.onrender.com/
-GITHUB REPO: [Add your GitHub repo URL here]
+GITHUB REPO: https://github.com/aggarwalhardik2005/TaskFlow
 
 ===============================================================================
 PROJECT OVERVIEW
