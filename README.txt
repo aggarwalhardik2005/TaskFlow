@@ -36,7 +36,7 @@ Backend:
   - dotenv (environment variables)
 
 Deployment:
-  - Railway (fullstack deployment)
+  - Render (Web Services)
   - MongoDB Atlas (cloud database)
 
 ===============================================================================
@@ -199,7 +199,7 @@ Step 5: Open browser
   Navigate to http://localhost:3000
 
 ===============================================================================
-DEPLOYMENT ON RAILWAY
+DEPLOYMENT ON RENDER
 ===============================================================================
 
 Step 1: Create MongoDB Atlas Cluster
@@ -216,21 +216,21 @@ Step 2: Push to GitHub
   git remote add origin <your-github-repo-url>
   git push -u origin main
 
-Step 3: Deploy on Railway
-  - Go to https://railway.app
-  - Click "New Project" > "Deploy from GitHub Repo"
+Step 3: Deploy on Render
+  - Go to https://render.com/
+  - Click "New" > "Deploy from GitHub Repo"
   - Select your repository
   - Add environment variables:
       MONGO_URI=<your-mongodb-atlas-uri>
       JWT_SECRET=<your-secret-key>
       NODE_ENV=production
-  - Railway auto-detects Node.js
-  - Build command: npm run build
-  - Start command: npm start
-  - Generate a domain under Settings
+  - Render auto-detects Node.js
+  - Build command: npm install && npm run build
+  - Start command: node server/server.js
+  - Click Deploy
 
 Step 4: Verify deployment
-  - Open the generated Railway URL
+  - Open the generated Render URL
   - Register an admin account
   - Create projects and tasks
   - Test all features
