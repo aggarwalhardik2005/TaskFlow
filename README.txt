@@ -3,7 +3,7 @@
                     Full-Stack Web Application
 ===============================================================================
 
-LIVE URL: [Add your Railway deployed URL here]
+LIVE URL: https://team-task-manager-uaso.onrender.com/
 GITHUB REPO: [Add your GitHub repo URL here]
 
 ===============================================================================
